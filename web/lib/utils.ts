@@ -7,7 +7,7 @@ export function cn(...inputs: ClassValue[]) {
 }
 
 export const API_BASE_URL =
-  process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5001/api';
+  process.env.NEXT_PUBLIC_API_URL || 'https://api-sispel.vercel.app/api';
 
 export const BACKEND_ORIGIN = API_BASE_URL.replace(/\/api\/?$/, '');
 

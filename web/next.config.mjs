@@ -18,7 +18,7 @@ const nextConfig = {
     ],
   },
   async rewrites() {
-    const backendOrigin = (process.env.NEXT_PUBLIC_API_URL || 'http://127.0.0.1:5001/api')
+    const backendOrigin = (process.env.NEXT_PUBLIC_API_URL || 'https://api-sispel.vercel.app/api')
       .replace(/\/api\/?$/, '');
     return [
       {

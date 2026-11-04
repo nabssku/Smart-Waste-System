@@ -50,11 +50,7 @@ class StorageService {
       return configured;
     }
 
-    if (!kIsWeb && defaultTargetPlatform == TargetPlatform.android) {
-      // Standard Android Emulator loopback to host machine port 5001
-      return 'http://10.0.2.2:5001/api';
-    }
-    return 'http://localhost:5001/api';
+    return 'https://api-sispel.vercel.app/api';
   }
 
   Future<void> saveSession({
