@@ -5,10 +5,12 @@ import 'providers/report_provider.dart';
 import 'screens/home_screen.dart';
 import 'screens/login_screen.dart';
 import 'services/api_service.dart';
+import 'services/storage_service.dart';
 import 'theme/app_theme.dart';
 
-void main() {
+Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
+  await StorageService.loadEnv();
   final apiService = ApiService();
 
   runApp(

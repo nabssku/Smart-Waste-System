@@ -16,6 +16,7 @@ node_modules/
 !backend/.env.example
 !web/.env.example
 !ml/.env.example
+!mobile/.env.example
 
 # Next.js / Web
 web/.next/

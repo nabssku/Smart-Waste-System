@@ -1,5 +1,6 @@
 import 'dart:convert';
 import 'package:flutter/foundation.dart';
+import 'package:flutter/services.dart' show rootBundle;
 import 'package:shared_preferences/shared_preferences.dart';
 import '../models/user_model.dart';
 
@@ -9,7 +10,46 @@ class StorageService {
   static const String _keyUserJson = 'sw_user_profile';
   static const String _keyApiBaseUrl = 'sw_api_base_url';
 
+  static String? _envApiBaseUrl;
+
+  /// Loads `API_BASE_URL` from `mobile/.env` asset on app startup.
+  static Future<void> loadEnv() async {
+    try {
+      final raw = await rootBundle.loadString('.env');
+      for (final line in const LineSplitter().convert(raw)) {
+        final trimmed = line.trim();
+        if (trimmed.isEmpty || trimmed.startsWith('#')) continue;
+        final idx = trimmed.indexOf('=');
+        if (idx <= 0) continue;
+        final key = trimmed.substring(0, idx).trim();
+        var value = trimmed.substring(idx + 1).trim();
+        if ((value.startsWith('"') && value.endsWith('"')) ||
+            (value.startsWith("'") && value.endsWith("'"))) {
+          value = value.substring(1, value.length - 1);
+        }
+        if (key == 'API_BASE_URL' && value.isNotEmpty) {
+          _envApiBaseUrl = value;
+        }
+      }
+    } catch (_) {
+      // Fallback to default if .env is not present
+    }
+  }
+
   static String get defaultApiBaseUrl {
+    const dartDefineUrl = String.fromEnvironment('API_BASE_URL');
+    final configured =
+        dartDefineUrl.isNotEmpty ? dartDefineUrl : (_envApiBaseUrl ?? '');
+
+    if (configured.isNotEmpty) {
+      if (!kIsWeb &&
+          defaultTargetPlatform == TargetPlatform.android &&
+          configured.contains('localhost')) {
+        return configured.replaceAll('localhost', '10.0.2.2');
+      }
+      return configured;
+    }
+
     if (!kIsWeb && defaultTargetPlatform == TargetPlatform.android) {
       // Standard Android Emulator loopback to host machine port 5001
       return 'http://10.0.2.2:5001/api';
