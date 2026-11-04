@@ -52,8 +52,7 @@ smart-waste/
 │   ├── API_SPECIFICATION.md    # Dokumentasi lengkap seluruh endpoint REST API & ML Predict
 │   └── postman_collection.json # Koleksi Postman v2.1 siap impor beserta auto-save token JWT
 │
-├── PRD-Smart-Waste-Management.md
-└── PROGRESS.md
+└── README.md
 ```
 
 ---
