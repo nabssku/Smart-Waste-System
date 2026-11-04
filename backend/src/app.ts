@@ -13,6 +13,7 @@ import statsRoutes from './routes/stats.routes';
 import mlRoutes, { acceptMlUpload } from './routes/ml.routes';
 import { predictWaste, healthCheck } from './controllers/ml.controller';
 import { errorHandler } from './middleware/error';
+import { uploadDir } from './middleware/upload';
 import { loadWasteModel } from './services/ml.service';
 
 const app = express();
@@ -43,9 +44,12 @@ app.use(express.json({ limit: '10mb' }));
 app.use(express.urlencoded({ extended: true, limit: '10mb' }));
 app.use('/api', apiLimiter);
 
-// Static files for uploaded waste photos
-const uploadsPath = path.resolve(process.cwd(), process.env.UPLOAD_DIR || 'uploads');
-app.use('/uploads', express.static(uploadsPath));
+// Static files for uploaded waste photos (both runtime /tmp/uploads and bundled uploads/)
+const bundledUploadsPath = path.resolve(process.cwd(), process.env.UPLOAD_DIR || 'uploads');
+const fallbackBundledPath = path.resolve(__dirname, '../uploads');
+app.use('/uploads', express.static(uploadDir));
+app.use('/uploads', express.static(bundledUploadsPath));
+app.use('/uploads', express.static(fallbackBundledPath));
 
 // Health & Root Endpoints
 app.get('/', (_req, res) => {

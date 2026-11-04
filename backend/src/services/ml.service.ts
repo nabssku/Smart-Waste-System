@@ -68,6 +68,8 @@ export async function loadWasteModel(): Promise<tf.LayersModel | null> {
   const configuredPath = process.env.ML_MODEL_PATH || '../ml/models/tfjs/model.json';
   const candidatePaths = [
     path.resolve(process.cwd(), configuredPath),
+    path.resolve(process.cwd(), 'models/tfjs/model.json'),
+    path.resolve(__dirname, '../../models/tfjs/model.json'),
     path.resolve(__dirname, '../../../ml/models/tfjs/model.json'),
     path.resolve(process.cwd(), 'ml/models/tfjs/model.json'),
   ];

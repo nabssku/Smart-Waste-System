@@ -2,9 +2,20 @@ import multer from 'multer';
 import path from 'path';
 import fs from 'fs';
 
-const uploadDir = path.resolve(process.cwd(), process.env.UPLOAD_DIR || 'uploads');
-if (!fs.existsSync(uploadDir)) {
-  fs.mkdirSync(uploadDir, { recursive: true });
+const isServerless = Boolean(
+  process.env.VERCEL || process.env.AWS_LAMBDA_FUNCTION_NAME
+);
+
+export const uploadDir = isServerless
+  ? path.join('/tmp', 'uploads')
+  : path.resolve(process.cwd(), process.env.UPLOAD_DIR || 'uploads');
+
+try {
+  if (!fs.existsSync(uploadDir)) {
+    fs.mkdirSync(uploadDir, { recursive: true });
+  }
+} catch (err) {
+  console.warn('[UploadMiddleware] Could not create upload directory:', err);
 }
 
 const storage = multer.diskStorage({
