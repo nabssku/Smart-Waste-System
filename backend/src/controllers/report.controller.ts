@@ -2,6 +2,7 @@ import { Request, Response, NextFunction } from 'express';
 import { Prisma, ReportStatus, WasteType } from '@prisma/client';
 import { prisma } from '../prisma/client';
 import { classifyWasteImage } from '../services/ml.service';
+import { fileToPersistentImageUrl } from '../middleware/upload';
 import path from 'path';
 import fs from 'fs';
 
@@ -257,7 +258,6 @@ export const createReport = async (
         : null;
 
     if (req.file) {
-      finalImageUrl = `/uploads/${req.file.filename}`;
       if (finalWasteType === 'unknown' || finalConfidence === null) {
         try {
           const mlResult = await classifyWasteImage(req.file.path, req.file.originalname);
@@ -271,6 +271,10 @@ export const createReport = async (
           console.warn('[CreateReport] Auto ML classification failed:', err);
         }
       }
+      finalImageUrl = await fileToPersistentImageUrl(
+        req.file.path,
+        req.file.filename
+      );
     } else if (finalImageUrl && finalImageUrl.startsWith('/uploads/')) {
       const localFilePath = path.resolve(
         process.cwd(),
@@ -368,7 +372,9 @@ export const updateReport = async (
       wasteType,
     } = req.body;
 
-    const imageUrl = req.file ? `/uploads/${req.file.filename}` : existing.imageUrl;
+    const imageUrl = req.file
+      ? await fileToPersistentImageUrl(req.file.path, req.file.filename)
+      : existing.imageUrl;
 
     const updated = await prisma.report.update({
       where: { id },

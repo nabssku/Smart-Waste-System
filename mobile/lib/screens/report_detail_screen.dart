@@ -206,17 +206,37 @@ class _ReportDetailScreenState extends State<ReportDetailScreen> {
                       children: [
                         SizedBox(
                           height: 220,
-                          child: Image.network(
-                            provider.apiService.resolveImageUrl(report.imageUrl),
-                            fit: BoxFit.cover,
-                            errorBuilder: (_, __, ___) => Container(
-                              color: CivicColors.surfaceSubtle,
-                              child: const Icon(
-                                Icons.broken_image_outlined,
-                                size: 42,
-                                color: CivicColors.inkMuted,
-                              ),
-                            ),
+                          child: Builder(
+                            builder: (_) {
+                              final imgUrl = provider.apiService
+                                  .resolveImageUrl(report.imageUrl);
+                              if (imgUrl.startsWith('data:')) {
+                                return Image.memory(
+                                  UriData.parse(imgUrl).contentAsBytes(),
+                                  fit: BoxFit.cover,
+                                  errorBuilder: (_, __, ___) => Container(
+                                    color: CivicColors.surfaceSubtle,
+                                    child: const Icon(
+                                      Icons.broken_image_outlined,
+                                      size: 42,
+                                      color: CivicColors.inkMuted,
+                                    ),
+                                  ),
+                                );
+                              }
+                              return Image.network(
+                                imgUrl,
+                                fit: BoxFit.cover,
+                                errorBuilder: (_, __, ___) => Container(
+                                  color: CivicColors.surfaceSubtle,
+                                  child: const Icon(
+                                    Icons.broken_image_outlined,
+                                    size: 42,
+                                    color: CivicColors.inkMuted,
+                                  ),
+                                ),
+                              );
+                            },
                           ),
                         ),
                         Padding(

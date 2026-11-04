@@ -48,15 +48,25 @@ class ReportCard extends StatelessWidget {
               ),
               clipBehavior: Clip.antiAlias,
               child: resolvedImageUrl.isNotEmpty
-                  ? Image.network(
-                      resolvedImageUrl,
-                      fit: BoxFit.cover,
-                      errorBuilder: (_, __, ___) => const Icon(
-                        Icons.image_not_supported_outlined,
-                        color: CivicColors.inkMuted,
-                        size: 24,
-                      ),
-                    )
+                  ? (resolvedImageUrl.startsWith('data:')
+                      ? Image.memory(
+                          UriData.parse(resolvedImageUrl).contentAsBytes(),
+                          fit: BoxFit.cover,
+                          errorBuilder: (_, __, ___) => const Icon(
+                            Icons.image_not_supported_outlined,
+                            color: CivicColors.inkMuted,
+                            size: 24,
+                          ),
+                        )
+                      : Image.network(
+                          resolvedImageUrl,
+                          fit: BoxFit.cover,
+                          errorBuilder: (_, __, ___) => const Icon(
+                            Icons.image_not_supported_outlined,
+                            color: CivicColors.inkMuted,
+                            size: 24,
+                          ),
+                        ))
                   : const Icon(
                       Icons.photo_camera_back_outlined,
                       color: CivicColors.inkMuted,

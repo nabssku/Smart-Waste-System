@@ -1,6 +1,7 @@
 import multer from 'multer';
 import path from 'path';
 import fs from 'fs';
+import sharp from 'sharp';
 
 const isServerless = Boolean(
   process.env.VERCEL || process.env.AWS_LAMBDA_FUNCTION_NAME
@@ -16,6 +17,34 @@ try {
   }
 } catch (err) {
   console.warn('[UploadMiddleware] Could not create upload directory:', err);
+}
+
+/**
+ * Compresses an uploaded image file via sharp (max 900px, JPEG 78%) and returns
+ * a persistent Base64 Data URI (`data:image/jpeg;base64,...`) so uploaded photos
+ * remain permanently stored in Neon PostgreSQL even across Vercel Serverless cold starts.
+ */
+export async function fileToPersistentImageUrl(
+  filePath: string,
+  fallbackFilename?: string
+): Promise<string> {
+  try {
+    const compressedBuffer = await sharp(filePath)
+      .rotate()
+      .resize({
+        width: 900,
+        height: 900,
+        fit: 'inside',
+        withoutEnlargement: true,
+      })
+      .jpeg({ quality: 78, mozjpeg: true })
+      .toBuffer();
+
+    return `data:image/jpeg;base64,${compressedBuffer.toString('base64')}`;
+  } catch (err) {
+    console.warn('[UploadMiddleware] Fallback to relative path:', err);
+    return `/uploads/${fallbackFilename || path.basename(filePath)}`;
+  }
 }
 
 const storage = multer.diskStorage({

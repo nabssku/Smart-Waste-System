@@ -1,5 +1,6 @@
 import { Request, Response, NextFunction } from 'express';
 import { classifyWasteImage } from '../services/ml.service';
+import { fileToPersistentImageUrl } from '../middleware/upload';
 
 export const predictWaste = async (
   req: Request,
@@ -17,6 +18,10 @@ export const predictWaste = async (
     }
 
     const result = await classifyWasteImage(file.path, file.originalname);
+    const persistentImageUrl = await fileToPersistentImageUrl(
+      file.path,
+      file.filename
+    );
 
     // Return both top-level PRD format and data wrapper so any client format works seamlessly
     res.json({
@@ -24,12 +29,12 @@ export const predictWaste = async (
       prediction: result.prediction,
       confidence: result.confidence,
       all_predictions: result.all_predictions,
-      image_url: `/uploads/${file.filename}`,
+      image_url: persistentImageUrl,
       data: {
         prediction: result.prediction,
         confidence: result.confidence,
         all_predictions: result.all_predictions,
-        imageUrl: `/uploads/${file.filename}`,
+        imageUrl: persistentImageUrl,
         engine: result.engine,
       },
     });

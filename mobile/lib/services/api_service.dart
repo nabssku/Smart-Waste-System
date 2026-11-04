@@ -77,10 +77,12 @@ class ApiService {
     );
   }
 
-  /// Resolves relative `/uploads/...` image paths against the configured server host.
+  /// Resolves relative `/uploads/...` image paths or `data:image/...` URIs.
   String resolveImageUrl(String rawUrl, {String? baseOverride}) {
     if (rawUrl.isEmpty) return '';
-    if (rawUrl.startsWith('http://') || rawUrl.startsWith('https://')) {
+    if (rawUrl.startsWith('http://') ||
+        rawUrl.startsWith('https://') ||
+        rawUrl.startsWith('data:')) {
       return rawUrl;
     }
     final apiBase = baseOverride ?? _dio.options.baseUrl;
