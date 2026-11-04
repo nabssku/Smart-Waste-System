@@ -1,0 +1,11 @@
+{
+  "name": "Smart Waste Management — Mobile",
+  "short_name": "SmartWaste",
+  "start_url": ".",
+  "display": "standalone",
+  "background_color": "#F4F4F0",
+  "theme_color": "#1E4D2B",
+  "description": "Aplikasi Mobile Pelaporan Timbulan Sampah & Deteksi AI CNN",
+  "orientation": "portrait-primary",
+  "prefer_related_applications": false
+}

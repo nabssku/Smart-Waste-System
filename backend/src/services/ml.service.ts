@@ -64,23 +64,31 @@ function createFileSystemIOHandler(modelJsonPath: string): tf.io.IOHandler {
 
 export async function loadWasteModel(): Promise<tf.LayersModel | null> {
   if (cachedModel) return cachedModel;
-  if (modelLoadAttempted) return null;
 
-  modelLoadAttempted = true;
   const configuredPath = process.env.ML_MODEL_PATH || '../ml/models/tfjs/model.json';
-  const resolvedPath = path.resolve(process.cwd(), configuredPath);
+  const candidatePaths = [
+    path.resolve(process.cwd(), configuredPath),
+    path.resolve(__dirname, '../../../ml/models/tfjs/model.json'),
+    path.resolve(process.cwd(), 'ml/models/tfjs/model.json'),
+  ];
+  const resolvedPath = candidatePaths.find((p) => fs.existsSync(p));
 
-  if (fs.existsSync(resolvedPath)) {
-    try {
-      const handler = createFileSystemIOHandler(resolvedPath);
-      cachedModel = await tf.loadLayersModel(handler);
-      console.log(`[ML Service] Loaded TensorFlow.js model from ${resolvedPath}`);
-      return cachedModel;
-    } catch (err) {
-      console.warn('[ML Service] Failed to load TFJS model file, using TFJS Tensor Spectral Classifier:', err);
-    }
+  if (!resolvedPath) {
+    return null;
   }
-  return null;
+
+  if (modelLoadAttempted) return null;
+  modelLoadAttempted = true;
+
+  try {
+    const handler = createFileSystemIOHandler(resolvedPath);
+    cachedModel = await tf.loadLayersModel(handler);
+    console.log(`[ML Service] Loaded TensorFlow.js CNN model from ${resolvedPath}`);
+    return cachedModel;
+  } catch (err) {
+    console.warn('[ML Service] Failed to load TFJS model file, using TFJS Tensor Spectral Classifier:', err);
+    return null;
+  }
 }
 
 /**

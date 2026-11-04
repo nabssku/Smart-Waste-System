@@ -42,6 +42,8 @@ ml/models/*.h5
 ml/models/*.keras
 ml/models/saved_model/
 !ml/models/.gitkeep
+!ml/models/waste_classifier.h5
+!ml/models/tfjs/*
 
 # Flutter / Mobile
 mobile/.dart_tool/

@@ -1,0 +1,24 @@
+======================================================================
+   CLASSIFICATION REPORT — KAGGLE GARBAGE CLASSIFICATION CNN (v2)     
+======================================================================
+Dataset Source   : Kaggle (mostafaabla/garbage-classification)
+Model Input Size : 224x224x3 RGB
+Total Dataset    : 240 real photos (80 organic, 80 paper, 80 plastic)
+Data Split       : 80% Training (192 images) / 20% Testing (48 images)
+Test Accuracy    : 93.75% (Target PRD: >= 80.00%)
+----------------------------------------------------------------------
+              precision    recall  f1-score   support
+
+     organic       1.00      0.81      0.90        16
+       paper       1.00      1.00      1.00        16
+     plastic       0.84      1.00      0.91        16
+
+    accuracy                           0.94        48
+   macro avg       0.95      0.94      0.94        48
+weighted avg       0.95      0.94      0.94        48
+----------------------------------------------------------------------
+Confusion Matrix (Rows = Actual, Columns = Predicted [organic, paper, plastic]):
+  organic  : [ 13,  0,  3 ]
+  paper    : [  0, 16,  0 ]
+  plastic  : [  0,  0, 16 ]
+======================================================================
