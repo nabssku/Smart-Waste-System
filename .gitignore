@@ -28,6 +28,7 @@ next-env.d.ts
 backend/dist/
 backend/uploads/*
 !backend/uploads/.gitkeep
+!backend/uploads/sample-*.jpg
 
 # Python / Machine Learning
 __pycache__/

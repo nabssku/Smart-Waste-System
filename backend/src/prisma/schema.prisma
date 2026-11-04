@@ -1,0 +1,87 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider  = "postgresql"
+  url       = env("DATABASE_URL")
+  directUrl = env("DIRECT_URL")
+}
+
+enum Role {
+  admin
+  user
+}
+
+enum WasteType {
+  organic
+  plastic
+  paper
+  unknown
+}
+
+enum ReportStatus {
+  pending
+  in_progress
+  completed
+  rejected
+}
+
+model User {
+  id         String      @id @default(uuid()) @db.Uuid
+  name       String      @db.VarChar(100)
+  email      String      @unique @db.VarChar(255)
+  password   String      @db.VarChar(255)
+  role       Role        @default(user)
+  avatarUrl  String?     @map("avatar_url") @db.VarChar(500)
+  phone      String?     @db.VarChar(20)
+  createdAt  DateTime    @default(now()) @map("created_at")
+  updatedAt  DateTime    @updatedAt @map("updated_at")
+
+  reports    Report[]
+  reportLogs ReportLog[] @relation("ChangedByUser")
+
+  @@map("users")
+}
+
+model Report {
+  id           String       @id @default(uuid()) @db.Uuid
+  userId       String       @map("user_id") @db.Uuid
+  title        String       @db.VarChar(200)
+  description  String       @db.Text
+  imageUrl     String       @map("image_url") @db.VarChar(500)
+  latitude     Decimal      @db.Decimal(10, 8)
+  longitude    Decimal      @db.Decimal(11, 8)
+  address      String?      @db.Text
+  wasteType    WasteType    @default(unknown) @map("waste_type")
+  aiConfidence Float?       @map("ai_confidence")
+  status       ReportStatus @default(pending)
+  adminNotes   String?      @map("admin_notes") @db.Text
+  createdAt    DateTime     @default(now()) @map("created_at")
+  updatedAt    DateTime     @updatedAt @map("updated_at")
+
+  user         User         @relation(fields: [userId], references: [id], onDelete: Cascade)
+  logs         ReportLog[]
+
+  @@index([userId])
+  @@index([status])
+  @@index([wasteType])
+  @@index([createdAt])
+  @@map("reports")
+}
+
+model ReportLog {
+  id          String       @id @default(uuid()) @db.Uuid
+  reportId    String       @map("report_id") @db.Uuid
+  changedById String       @map("changed_by") @db.Uuid
+  oldStatus   ReportStatus @map("old_status")
+  newStatus   ReportStatus @map("new_status")
+  notes       String?      @db.Text
+  createdAt   DateTime     @default(now()) @map("created_at")
+
+  report      Report       @relation(fields: [reportId], references: [id], onDelete: Cascade)
+  changedBy   User         @relation("ChangedByUser", fields: [changedById], references: [id], onDelete: Cascade)
+
+  @@index([reportId])
+  @@map("report_logs")
+}

@@ -17,12 +17,12 @@ smart-waste/
 │   ├── components/         # Reusable UI Components
 │   └── lib/                # API Client & Auth Helpers
 │
-├── backend/                # Node.js + Express.js (TypeScript) + Prisma ORM
+├── backend/                # Unified Backend: Express.js (TypeScript) + Prisma ORM + TensorFlow.js
 │   ├── src/
-│   │   ├── controllers/    # Route Controllers
+│   │   ├── controllers/    # Route Controllers (Auth, Reports, Users, Stats, ML)
 │   │   ├── middleware/     # Auth (JWT), RBAC, File Upload (Multer)
 │   │   ├── routes/         # Express API Routes
-│   │   ├── services/       # Business Logic & ML Proxy
+│   │   ├── services/       # Business Logic & Embedded ML Classifier (TensorFlow.js)
 │   │   ├── prisma/         # Prisma Schema, Migrations & Seed
 │   │   └── app.ts          # Entry point aplikasi Express
 │   └── uploads/            # Penyimpanan lokal file gambar laporan
@@ -36,11 +36,10 @@ smart-waste/
 │       ├── widgets/        # Custom Flutter Widgets
 │       └── main.dart
 │
-├── ml/                     # Machine Learning Service (Python, TensorFlow, FastAPI)
+├── ml/                     # Machine Learning Training & Evaluation (Python, TensorFlow/Keras)
 │   ├── dataset/            # Dataset gambar (organic, plastic, paper)
-│   ├── notebooks/          # Jupyter Notebook training & evaluasi
-│   ├── models/             # Saved model (.h5 / SavedModel)
-│   ├── api/                # FastAPI endpoint (/predict, /health)
+│   ├── notebooks/          # Jupyter Notebook / Script training & evaluasi
+│   ├── models/             # Saved model (.h5 & TensorFlow.js format untuk Backend)
 │   ├── evaluation/         # Confusion matrix & classification report
 │   └── requirements.txt
 │
@@ -55,16 +54,16 @@ smart-waste/
 | Layer | Teknologi |
 |-------|-----------|
 | **Frontend (Web)** | Next.js 14+ (App Router), TypeScript, Tailwind CSS |
-| **Backend API** | Node.js, Express.js, TypeScript, JWT (Access + Refresh Token) |
+| **Backend API + ML Runtime** | Node.js, Express.js, TypeScript, JWT, TensorFlow.js (`@tensorflow/tfjs` + `sharp`) |
 | **Database & ORM** | PostgreSQL (Neon Serverless), Prisma ORM |
 | **Mobile App** | Flutter (Dart) |
-| **Machine Learning** | Python, TensorFlow/Keras (MobileNetV2), FastAPI |
+| **ML Training & Evaluation** | Python, TensorFlow/Keras (MobileNetV2), Scikit-learn, Matplotlib |
 
 ---
 
-## 🚀 Panduan Instalasi & Menjalankan Proyek
+## Panduan Instalasi & Menjalankan Proyek
 
-### 1. Database & Backend (`backend/`)
+### 1. Database & Unified Backend (`backend/`)
 ```bash
 cd backend
 cp .env.example .env
@@ -75,13 +74,13 @@ npx prisma db seed
 npm run dev
 ```
 
-### 2. Machine Learning API (`ml/`)
+### 2. Machine Learning Training (`ml/`)
 ```bash
 cd ml
 python3 -m venv venv
 source venv/bin/activate
 pip install -r requirements.txt
-uvicorn api.main:app --reload --port 8000
+# Jalankan training notebook/script untuk menghasilkan model .h5, TFJS model, & evaluasi
 ```
 
 ### 3. Website Frontend (`web/`)
