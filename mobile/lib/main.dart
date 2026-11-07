@@ -30,7 +30,7 @@ class SmartWasteMobileApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final app = MaterialApp(
-      title: 'Smart Waste Management — Pelaporan Warga',
+      title: 'Sispel — Pelaporan Warga',
       debugShowCheckedModeBanner: false,
       theme: AppTheme.lightTheme,
       home: Consumer<AuthProvider>(

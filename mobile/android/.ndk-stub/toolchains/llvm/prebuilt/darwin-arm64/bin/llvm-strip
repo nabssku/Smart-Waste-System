@@ -1,0 +1,140 @@
+#!/usr/bin/env python3
+import os
+import shutil
+import struct
+import sys
+
+
+def strip_elf(data: bytes) -> bytes:
+    if len(data) < 64 or data[:4] != b"\x7fELF":
+        return data
+    ei_class = data[4]
+    ei_data = data[5]
+    if ei_data != 1:  # Only little-endian
+        return data
+
+    if ei_class == 2:  # 64-bit ELF
+        e_phoff, e_shoff = struct.unpack_from("<QQ", data, 32)
+        e_phentsize, e_phnum, e_shentsize, e_shnum, e_shstrndx = struct.unpack_from("<HHHHH", data, 54)
+        if e_shoff == 0 or e_shnum == 0 or e_shstrndx >= e_shnum:
+            return data
+
+        max_ph_end = 0
+        for i in range(e_phnum):
+            p_type, p_flags, p_offset, p_vaddr, p_paddr, p_filesz, p_memsz, p_align = struct.unpack_from(
+                "<IIQQQQQQ", data, e_phoff + i * e_phentsize
+            )
+            max_ph_end = max(max_ph_end, p_offset + p_filesz)
+
+        shstr_hdr_off = e_shoff + e_shstrndx * e_shentsize
+        shstr_off, shstr_size = struct.unpack_from("<QQ", data, shstr_hdr_off + 24)
+        shstr_bytes = data[shstr_off : shstr_off + shstr_size]
+
+        kept_sections = []
+        new_shstrndx = 0
+        for i in range(e_shnum):
+            sec_raw = bytearray(data[e_shoff + i * e_shentsize : e_shoff + (i + 1) * e_shentsize])
+            sh_name, sh_type, sh_flags, sh_addr, sh_offset, sh_size = struct.unpack_from("<IIQQQQ", sec_raw, 0)
+            if i == 0 or (sh_flags & 0x2) != 0:
+                kept_sections.append(bytes(sec_raw))
+            elif i == e_shstrndx:
+                new_shstr_offset = (max_ph_end + 7) & ~7
+                struct.pack_into("<Q", sec_raw, 24, new_shstr_offset)
+                new_shstrndx = len(kept_sections)
+                kept_sections.append(bytes(sec_raw))
+
+        out = bytearray(data[:max_ph_end])
+        while len(out) % 8 != 0:
+            out.append(0)
+        out.extend(shstr_bytes)
+        while len(out) % 8 != 0:
+            out.append(0)
+        new_shoff = len(out)
+        for sec in kept_sections:
+            out.extend(sec)
+
+        struct.pack_into("<Q", out, 40, new_shoff)
+        struct.pack_into("<HH", out, 60, len(kept_sections), new_shstrndx)
+        return bytes(out)
+
+    elif ei_class == 1:  # 32-bit ELF
+        e_phoff, e_shoff = struct.unpack_from("<II", data, 28)
+        e_phentsize, e_phnum, e_shentsize, e_shnum, e_shstrndx = struct.unpack_from("<HHHHH", data, 42)
+        if e_shoff == 0 or e_shnum == 0 or e_shstrndx >= e_shnum:
+            return data
+
+        max_ph_end = 0
+        for i in range(e_phnum):
+            p_type, p_offset, p_vaddr, p_paddr, p_filesz, p_memsz, p_flags, p_align = struct.unpack_from(
+                "<IIIIIIII", data, e_phoff + i * e_phentsize
+            )
+            max_ph_end = max(max_ph_end, p_offset + p_filesz)
+
+        shstr_hdr_off = e_shoff + e_shstrndx * e_shentsize
+        shstr_off, shstr_size = struct.unpack_from("<II", data, shstr_hdr_off + 16)
+        shstr_bytes = data[shstr_off : shstr_off + shstr_size]
+
+        kept_sections = []
+        new_shstrndx = 0
+        for i in range(e_shnum):
+            sec_raw = bytearray(data[e_shoff + i * e_shentsize : e_shoff + (i + 1) * e_shentsize])
+            sh_name, sh_type, sh_flags, sh_addr, sh_offset, sh_size = struct.unpack_from("<IIIIII", sec_raw, 0)
+            if i == 0 or (sh_flags & 0x2) != 0:
+                kept_sections.append(bytes(sec_raw))
+            elif i == e_shstrndx:
+                new_shstr_offset = (max_ph_end + 3) & ~3
+                struct.pack_into("<I", sec_raw, 16, new_shstr_offset)
+                new_shstrndx = len(kept_sections)
+                kept_sections.append(bytes(sec_raw))
+
+        out = bytearray(data[:max_ph_end])
+        while len(out) % 4 != 0:
+            out.append(0)
+        out.extend(shstr_bytes)
+        while len(out) % 4 != 0:
+            out.append(0)
+        new_shoff = len(out)
+        for sec in kept_sections:
+            out.extend(sec)
+
+        struct.pack_into("<I", out, 32, new_shoff)
+        struct.pack_into("<HH", out, 48, len(kept_sections), new_shstrndx)
+        return bytes(out)
+
+    return data
+
+
+def main():
+    args = sys.argv[1:]
+    out_file = None
+    in_files = []
+    i = 0
+    while i < len(args):
+        a = args[i]
+        if a == "-o" and i + 1 < len(args):
+            out_file = args[i + 1]
+            i += 2
+        elif a.startswith("-o") and len(a) > 2:
+            out_file = a[2:]
+            i += 1
+        elif a.startswith("-"):
+            i += 1
+        else:
+            in_files.append(a)
+            i += 1
+
+    if not in_files:
+        sys.exit(0)
+
+    src = in_files[-1]
+    dst = out_file if out_file else src
+    with open(src, "rb") as f:
+        raw = f.read()
+    stripped = strip_elf(raw)
+    os.makedirs(os.path.dirname(os.path.abspath(dst)), exist_ok=True)
+    with open(dst, "wb") as f:
+        f.write(stripped)
+
+
+if __name__ == "__main__":
+    main()
