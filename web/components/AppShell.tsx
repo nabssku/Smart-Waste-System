@@ -42,6 +42,7 @@ export default function AppShell({
   useEffect(() => {
     const stored = getStoredUser();
     if (!stored) {
+      clearAuthSession();
       router.replace('/login');
       return;
     }

@@ -25,7 +25,7 @@ export default function LoginPage() {
     try {
       const { user } = await authApi.login(email.trim(), password);
       showToast(`Selamat datang, ${user.name}`, 'success');
-      router.push(user.role === 'admin' ? '/admin/dashboard' : '/dashboard');
+      window.location.href = user.role === 'admin' ? '/admin/dashboard' : '/dashboard';
     } catch (err: any) {
       const msg = err.message || 'Gagal melakukan autentikasi.';
       setErrorMsg(msg);
@@ -43,7 +43,7 @@ export default function LoginPage() {
     try {
       const { user } = await authApi.login(demoEmail, demoPass);
       showToast(`Masuk sebagai ${user.name}`, 'success');
-      router.push(user.role === 'admin' ? '/admin/dashboard' : '/dashboard');
+      window.location.href = user.role === 'admin' ? '/admin/dashboard' : '/dashboard';
     } catch (err: any) {
       setErrorMsg(err.message || 'Gagal masuk akun demo.');
     } finally {

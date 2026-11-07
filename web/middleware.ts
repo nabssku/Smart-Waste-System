@@ -6,15 +6,8 @@ export function middleware(request: NextRequest) {
   const token = request.cookies.get('sw_token')?.value;
   const role = request.cookies.get('sw_role')?.value;
 
-  const isAuthPage = pathname.startsWith('/login') || pathname.startsWith('/register');
   const isAdminPage = pathname.startsWith('/admin');
   const isUserDashboard = pathname.startsWith('/dashboard');
-
-  // Redirect authenticated users away from /login or /register
-  if (isAuthPage && token && role) {
-    const dest = role === 'admin' ? '/admin/dashboard' : '/dashboard';
-    return NextResponse.redirect(new URL(dest, request.url));
-  }
 
   // Protect /admin/* routes
   if (isAdminPage) {
@@ -40,5 +33,5 @@ export function middleware(request: NextRequest) {
 }
 
 export const config = {
-  matcher: ['/admin/:path*', '/dashboard/:path*', '/login', '/register'],
+  matcher: ['/admin/:path*', '/dashboard/:path*'],
 };

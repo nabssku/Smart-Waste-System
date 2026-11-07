@@ -25,7 +25,7 @@ export default function HomePage() {
       setLoading(true);
       const { user } = await authApi.login(targetEmail.trim(), targetPass);
       showToast(`Masuk sebagai ${user.name}`, 'success');
-      router.push(user.role === 'admin' ? '/admin/dashboard' : '/dashboard');
+      window.location.href = user.role === 'admin' ? '/admin/dashboard' : '/dashboard';
     } catch (err: any) {
       showToast(err.message || 'Gagal masuk. Periksa koneksi server backend.', 'error');
     } finally {

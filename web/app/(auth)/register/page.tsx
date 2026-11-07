@@ -31,7 +31,7 @@ export default function RegisterPage() {
         phone: phone.trim() || undefined,
       });
       showToast(`Registrasi berhasil. Selamat datang, ${user.name}.`, 'success');
-      router.push('/dashboard');
+      window.location.href = user.role === 'admin' ? '/admin/dashboard' : '/dashboard';
     } catch (err: any) {
       const msg = err.message || 'Gagal mendaftarkan akun.';
       setErrorMsg(msg);
